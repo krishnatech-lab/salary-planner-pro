@@ -1,0 +1,1436 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Salary Planner Pro — Plan, Save & Invest</title>
+    
+    <!-- React and ReactDOM production versions -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel Standalone to parse JSX on the fly in the browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Configure Tailwind with dark mode class support -->
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'system-ui', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            }
+          }
+        }
+      }
+    </script>
+    
+    <!-- Fonts import -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;850&family=JetBrains+Mono:wght@400;505;700&display=swap">
+    
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      /* Custom styles to reset native slider looks */
+      input[type="range"]::-webkit-slider-thumb {
+        pointer-events: auto;
+      }
+      @media print {
+        body {
+          background: white !important;
+          color: black !important;
+        }
+        .no-print {
+          display: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-250">
+    <div id="root"></div>
+
+    <!-- Script Block containing the React Code in JSX -->
+    <script type="text/babel">
+      const { useState, useEffect, useRef } = React;
+
+      // =========================================================================
+      // DYNAMIC ICON COMPONENT
+      // Fully-contained elegant Lucide SVG Icons replica directly inside React
+      // =========================================================================
+      const Icon = ({ name, className = "w-4 h-4", ...props }) => {
+        const getPaths = () => {
+          switch (name) {
+            case 'sun': 
+              return (
+                <g strokeWidth="2">
+                  <circle cx="12" cy="12" r="4"/>
+                  <path d="M12 2v2M12 20v2m-7.07-15.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2m-15.34 5.66-1.41 1.41m14.14-14.14-1.41 1.41"/>
+                </g>
+              );
+            case 'moon': 
+              return <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" strokeWidth="2"/>;
+            case 'rotate-ccw': 
+              return (
+                <g strokeWidth="2">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                  <path d="M3 3v5h5"/>
+                </g>
+              );
+            case 'printer': 
+              return (
+                <g strokeWidth="2">
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                  <rect width="12" height="8" x="6" y="14" rx="1"/>
+                  <path d="M6 6V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"/>
+                </g>
+              );
+            case 'share-2': 
+              return (
+                <g strokeWidth="2">
+                  <circle cx="18" cy="5" r="3"/>
+                  <circle cx="6" cy="12" r="3"/>
+                  <circle cx="18" cy="19" r="3"/>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </g>
+              );
+            case 'bookmark': 
+              return <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" strokeWidth="2"/>;
+            case 'check-circle': 
+              return (
+                <g strokeWidth="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <path d="m22 4-10 10.01-3-3"/>
+                </g>
+              );
+            case 'alert-triangle': 
+              return (
+                <g strokeWidth="2">
+                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </g>
+              );
+            case 'info': 
+              return (
+                <g strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 16v-4M12 8h.01"/>
+                </g>
+              );
+            case 'trending-up': 
+              return (
+                <g strokeWidth="2">
+                  <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+                  <polyline points="16 7 22 7 22 13"/>
+                </g>
+              );
+            case 'cpu': 
+              return (
+                <g strokeWidth="2">
+                  <rect width="16" height="16" x="4" y="4" rx="2" ry="2"/>
+                  <rect width="6" height="6" x="9" y="9" rx="1"/>
+                  <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3"/>
+                </g>
+              );
+            case 'sparkles': 
+              return (
+                <g strokeWidth="2">
+                  <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                  <path d="m5 3 1 2.5L8.5 6 6 7 5 9.5 4 7 1.5 6 4 5.5zM19 17l1 2.5 2.5.5-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1z"/>
+                </g>
+              );
+            case 'check': 
+              return <polyline points="20 6 9 17 4 12" strokeWidth="2"/>;
+            case 'percent': 
+              return (
+                <g strokeWidth="2">
+                  <line x1="19" y1="5" x2="5" y2="19"/>
+                  <circle cx="6.5" cy="6.5" r="2.5"/>
+                  <circle cx="17.5" cy="17.5" r="2.5"/>
+                </g>
+              );
+            case 'folder-open': 
+              return <path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.69.9H18a2 2 0 0 1 2 2v2" strokeWidth="2"/>;
+            case 'calendar': 
+              return (
+                <g strokeWidth="2">
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </g>
+              );
+            case 'trash': 
+              return (
+                <g strokeWidth="2">
+                  <path d="M3 6h18"/>
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                  <line x1="10" y1="11" x2="10" y2="17"/>
+                  <line x1="14" y1="11" x2="14" y2="17"/>
+                </g>
+              );
+            case 'plus': 
+              return <path d="M5 12h14M12 5v14" strokeWidth="2"/>;
+            case 'x': 
+              return <path d="M18 6 6 18M6 6l12 12" strokeWidth="2"/>;
+            default: 
+              return null;
+          }
+        };
+
+        return (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={className}
+            {...props}
+          >
+            {getPaths()}
+          </svg>
+        );
+      };
+
+      // =========================================================================
+      // INITIAL DATA STATE CONFIGURATION
+      // =========================================================================
+      const INITIAL_CATEGORIES = [
+        {
+          id: 'essentials',
+          name: 'Essentials (Food, Travel, etc.)',
+          hindiName: 'Zaroori Kharche (Essentials)',
+          icon: '🍽️',
+          defaultPercentage: 50,
+          percentage: 50,
+          description: 'Roz ke zaroori kharche jaise khana, travel, recharge, rent, aur daily needs. Ye basic living ke liye hota hai.',
+          color: '#3B82F6',
+          bgColor: 'bg-blue-500/10 dark:bg-blue-500/15',
+          borderColor: 'border-blue-500/20 dark:border-blue-500/30',
+        },
+        {
+          id: 'savings',
+          name: 'Savings / Emergency Fund',
+          hindiName: 'Bachat / Emergency Fund',
+          icon: '💰',
+          defaultPercentage: 10,
+          percentage: 10,
+          description: 'Har mahine thoda paisa bacha kar rakhiye taaki emergency time (medical, job loss, etc.) me help mile.',
+          color: '#10B981',
+          bgColor: 'bg-emerald-500/10 dark:bg-emerald-500/15',
+          borderColor: 'border-emerald-500/20 dark:border-emerald-500/30',
+        },
+        {
+          id: 'skills',
+          name: 'Skill Growth / Education',
+          hindiName: 'Skill Growth / Padhai',
+          icon: '📚',
+          defaultPercentage: 15,
+          percentage: 15,
+          description: 'Apne development me invest kijiye — jaise computer course, online training, ya new learning materials.',
+          color: '#8B5CF6',
+          bgColor: 'bg-purple-500/10 dark:bg-purple-500/15',
+          borderColor: 'border-purple-500/20 dark:border-purple-500/30',
+        },
+        {
+          id: 'investments',
+          name: 'Investment / Future Goal',
+          hindiName: 'Investment ke Tarike',
+          icon: '📈',
+          defaultPercentage: 10,
+          percentage: 10,
+          description: 'Long-term goals ke liye invest kijiye — jaise SIP, RD, mutual fund, ya business fund.',
+          color: '#06B6D4',
+          bgColor: 'bg-cyan-500/10 dark:bg-cyan-500/15',
+          borderColor: 'border-cyan-500/20 dark:border-cyan-500/30',
+        },
+        {
+          id: 'family',
+          name: 'Family / Charity / Help',
+          hindiName: 'Parivaar aur Seva',
+          icon: '❤️',
+          defaultPercentage: 5,
+          percentage: 5,
+          description: 'Apne parivaar ya kisi needy vyakti ki help kijiye. Ye emotional aur social balance ke liye zaroori hai.',
+          color: '#EF4444',
+          bgColor: 'bg-rose-500/10 dark:bg-rose-500/15',
+          borderColor: 'border-rose-500/20 dark:border-rose-500/40',
+        },
+        {
+          id: 'enjoyment',
+          name: 'Enjoyment / Self-Care',
+          hindiName: 'Mauj Masti / Self-Care',
+          icon: '🎉',
+          defaultPercentage: 10,
+          percentage: 10,
+          description: 'Apne liye khushi me bhi thoda paisa rakhiye — jaise outing, treat, ya self-care. Motivation ke liye zaroori hai.',
+          color: '#F59E0B',
+          bgColor: 'bg-amber-500/10 dark:bg-amber-500/15',
+          borderColor: 'border-amber-500/20 dark:border-amber-500/30',
+        },
+      ];
+
+      // =========================================================================
+      // INTERACTIVE DONUT CHART COMPONENT
+      // =========================================================================
+      const DonutChart = ({ categories, totalIncome, onSliceClick, selectedId }) => {
+        const [hoveredId, setHoveredId] = useState(null);
+
+        const activeCategories = categories.filter((c) => c.percentage > 0);
+        const totalPercentage = categories.reduce((sum, c) => sum + c.percentage, 0);
+
+        const size = 300;
+        const radius = 100;
+        const strokeWidth = 34;
+        const center = size / 2;
+        const circumference = 2 * Math.PI * radius;
+
+        let accumulatedPercentage = 0;
+
+        return (
+          <div className="relative flex flex-col items-center justify-center p-4">
+            <div className="relative w-full max-w-[280px] aspect-square flex items-center justify-center">
+              <svg
+                width="100%"
+                height="100%"
+                viewBox={`0 0 ${size} ${size}`}
+                className="transform -rotate-90 select-none drop-shadow-md"
+              >
+                {totalPercentage === 0 && (
+                  <circle
+                    cx={center}
+                    cy={center}
+                    r={radius}
+                    fill="transparent"
+                    stroke="#E2E8F0"
+                    strokeWidth={strokeWidth}
+                    className="dark:stroke-slate-755"
+                  />
+                )}
+
+                {activeCategories.map((category) => {
+                  const pct = category.percentage / (totalPercentage || 100);
+                  const strokeLength = circumference * pct;
+                  const strokeOffset = circumference - (circumference * accumulatedPercentage);
+                  accumulatedPercentage += pct;
+
+                  const isSelected = selectedId === category.id;
+                  const isHovered = hoveredId === category.id;
+                  const activeStrokeWidth = isSelected || isHovered ? strokeWidth + 6 : strokeWidth;
+
+                  return (
+                    <circle
+                      key={category.id}
+                      cx={center}
+                      cy={center}
+                      r={radius}
+                      fill="transparent"
+                      stroke={category.color}
+                      strokeWidth={activeStrokeWidth}
+                      strokeDasharray={`${strokeLength} ${circumference}`}
+                      strokeDashoffset={strokeOffset}
+                      strokeLinecap={pct > 0.02 ? 'round' : 'butt'}
+                      className="transition-all duration-300 cursor-pointer origin-center hover:scale-[1.02]"
+                      onMouseEnter={() => setHoveredId(category.id)}
+                      onMouseLeave={() => setHoveredId(null)}
+                      onClick={() => onSliceClick?.(category.id)}
+                      style={{
+                        transformOrigin: `${center}px ${center}px`,
+                        filter: isHovered || isSelected ? 'drop-shadow(0 0 6px rgba(0,0,0,0.15))' : 'none',
+                      }}
+                    />
+                  );
+                })}
+              </svg>
+
+              {/* Central Information block */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none p-4 text-center">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400" style={{ letterSpacing: '0.07em' }}>
+                  {hoveredId
+                    ? categories.find((c) => c.id === hoveredId)?.name.split(' (')[0]
+                    : selectedId
+                    ? categories.find((c) => c.id === selectedId)?.name.split(' (')[0]
+                    : 'Total Budget'}
+                </span>
+                <span className="text-2xl sm:text-3xl font-extrabold font-sans text-slate-800 dark:text-white mt-1">
+                  ₹
+                  {hoveredId
+                    ? ((totalIncome * (categories.find((c) => c.id === hoveredId)?.percentage || 0)) / 100).toLocaleString('en-IN')
+                    : selectedId
+                    ? ((totalIncome * (categories.find((c) => c.id === selectedId)?.percentage || 0)) / 100).toLocaleString('en-IN')
+                    : totalIncome.toLocaleString('en-IN')}
+                </span>
+                <span className="text-sm font-medium text-slate-605 dark:text-slate-400 mt-1">
+                  {hoveredId ? (
+                    <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800/85 text-[11px] font-mono font-bold">
+                      {categories.find((c) => c.id === hoveredId)?.percentage}% Allocated
+                    </span>
+                  ) : selectedId ? (
+                    <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800/85 text-[11px] font-mono font-bold">
+                      {categories.find((c) => c.id === selectedId)?.percentage}% Allocated
+                    </span>
+                  ) : (
+                    <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono font-bold">
+                      {totalPercentage}% Allocated
+                    </span>
+                  )}
+                </span>
+              </div>
+            </div>
+
+            {/* Inner Segment Legend */}
+            <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-1.5 w-full text-xs">
+              {categories.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => onSliceClick?.(c.id)}
+                  onMouseEnter={() => setHoveredId(c.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                  className={`flex items-center space-x-1.5 transition-all duration-200 text-left p-1.5 rounded-lg ${
+                    selectedId === c.id
+                      ? 'bg-slate-100 dark:bg-slate-800/80 font-bold'
+                      : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                  }`}
+                >
+                  <span
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-transform duration-200"
+                    style={{
+                      backgroundColor: c.color,
+                      transform: hoveredId === c.id || selectedId === c.id ? 'scale(1.2)' : 'none',
+                    }}
+                  />
+                  <span className="truncate text-slate-705 dark:text-slate-300">
+                    {c.icon} {c.name.split(' (')[0]}
+                  </span>
+                  <span className="ml-auto font-mono text-[10px] text-slate-500 dark:text-slate-400 flex-shrink-0">
+                    {c.percentage}%
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      };
+
+      // =========================================================================
+      // BUDGET PRESETS AND SAVING DIALOG MODEL
+      // =========================================================================
+      const SaveLoadDialog = ({ isOpen, onClose, categories, totalIncome, onLoadPlan }) => {
+        const [plans, setPlans] = useState([]);
+        const [planName, setPlanName] = useState('');
+        const [errorMsg, setErrorMsg] = useState('');
+
+        useEffect(() => {
+          const stored = localStorage.getItem('salary_planner_plans');
+          if (stored) {
+            try {
+              setPlans(JSON.parse(stored));
+            } catch (e) {
+              console.error('Error parsing stored plans', e);
+            }
+          }
+        }, [isOpen]);
+
+        const saveCurrentPlan = () => {
+          if (!planName.trim()) {
+            setErrorMsg('Kripya ek naam darj karein (Please enter a name).');
+            return;
+          }
+
+          const newPlan = {
+            id: Date.now().toString(),
+            name: planName.trim(),
+            totalIncome,
+            categories: categories.map((c) => ({ id: c.id, percentage: c.percentage })),
+            createdAt: new Date().toLocaleDateString('en-IN', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+          };
+
+          const updatedPlans = [newPlan, ...plans];
+          setPlans(updatedPlans);
+          localStorage.setItem('salary_planner_plans', JSON.stringify(updatedPlans));
+          setPlanName('');
+          setErrorMsg('');
+        };
+
+        const deletePlan = (id, e) => {
+          e.stopPropagation();
+          const updatedPlans = plans.filter((p) => p.id !== id);
+          setPlans(updatedPlans);
+          localStorage.setItem('salary_planner_plans', JSON.stringify(updatedPlans));
+        };
+
+        const loadPlan = (plan) => {
+          onLoadPlan(plan.totalIncome, plan.categories);
+          onClose();
+        };
+
+        const PRESETS = [
+          {
+            name: 'Standard 50/30/20 Rule',
+            income: 25000,
+            description: 'Balanced planning (Most recommended)',
+            categories: [
+              { id: 'essentials', percentage: 50 },
+              { id: 'savings', percentage: 10 },
+              { id: 'skills', percentage: 10 },
+              { id: 'investments', percentage: 15 },
+              { id: 'family', percentage: 5 },
+              { id: 'enjoyment', percentage: 10 },
+            ],
+          },
+          {
+            name: 'Conservative Saver',
+            income: 40000,
+            description: 'Focus on scaling savings and future investments',
+            categories: [
+              { id: 'essentials', percentage: 40 },
+              { id: 'savings', percentage: 20 },
+              { id: 'skills', percentage: 10 },
+              { id: 'investments', percentage: 20 },
+              { id: 'family', percentage: 5 },
+              { id: 'enjoyment', percentage: 5 },
+            ],
+          },
+          {
+            name: 'Student / Learning Focus',
+            income: 10000,
+            description: 'Extra allocation to knowledge & skills',
+            categories: [
+              { id: 'essentials', percentage: 50 },
+              { id: 'savings', percentage: 5 },
+              { id: 'skills', percentage: 25 },
+              { id: 'investments', percentage: 5 },
+              { id: 'family', percentage: 5 },
+              { id: 'enjoyment', percentage: 10 },
+            ],
+          },
+        ];
+
+        if (!isOpen) return null;
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+              <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <div className="flex items-center space-x-2">
+                  <Icon name="folder-open" className="w-5 h-5 text-indigo-500" />
+                  <h3 className="font-bold text-lg text-slate-800 dark:text-white">
+                    Save & Load Budget Plans
+                  </h3>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="p-1 px-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-450 transition"
+                >
+                  <Icon name="x" className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto space-y-6 flex-1 text-slate-700 dark:text-slate-350">
+                <div className="space-y-3 pb-5 border-b border-slate-100 dark:border-slate-800">
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-slate-450 dark:text-slate-400 flex items-center gap-1.5">
+                    <Icon name="bookmark" className="w-4 h-4 text-emerald-500" /> Save Current Plan
+                  </h4>
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Plan Name (e.g., June Income Plan...)"
+                      value={planName}
+                      onChange={(e) => {
+                        setPlanName(e.target.value);
+                        setErrorMsg('');
+                      }}
+                      className="flex-1 px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm h-10 text-slate-900 dark:text-white"
+                    />
+                    <button
+                      onClick={saveCurrentPlan}
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold transition flex items-center gap-1.5 h-10 shadow-sm"
+                    >
+                      <Icon name="plus" className="w-4 h-4" /> Save
+                    </button>
+                  </div>
+                  {errorMsg && <p className="text-xs text-rose-500 font-bold px-1">{errorMsg}</p>}
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-slate-550 dark:text-slate-400 flex items-center gap-1.5">
+                    <Icon name="sparkles" className="w-4 h-4 text-amber-505" /> Professional Presets (Templates)
+                  </h4>
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {PRESETS.map((preset, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          onLoadPlan(preset.income, preset.categories);
+                          onClose();
+                        }}
+                        className="p-3.5 text-left border border-slate-200 dark:border-slate-800 bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 dark:hover:bg-slate-900 rounded-xl transition duration-200 hover:border-indigo-500/50 group"
+                      >
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold text-sm text-slate-800 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                            {preset.name}
+                          </span>
+                          <span className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 bg-slate-200/50 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                            ₹{preset.income.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        <span className="block text-xs text-slate-400 dark:text-slate-500 mt-1">
+                          {preset.description}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Your Saved Plans
+                  </h4>
+
+                  {plans.length === 0 ? (
+                    <div className="p-6 text-center border-2 border-dashed border-slate-150 dark:border-slate-800 rounded-2xl">
+                      <span className="block text-sm text-slate-400 dark:text-slate-500 font-semibold">
+                        Aapke paas abhi koi save kiya hua plan nahi hai.
+                      </span>
+                      <span className="block text-xs text-slate-400 mt-1">
+                        (No saved plans yet. Write a name above and click Save to create one.)
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                      {plans.map((p) => (
+                        <div
+                          key={p.id}
+                          onClick={() => loadPlan(p)}
+                          className="p-3.5 border border-slate-100 dark:border-slate-800 bg-white hover:bg-slate-50 dark:bg-slate-950 dark:hover:bg-slate-900 rounded-xl flex justify-between items-center transition duration-200 cursor-pointer hover:border-indigo-500/40 relative group"
+                        >
+                          <div className="space-y-1 pr-6 flex-1 min-w-0">
+                            <span className="font-bold text-sm block truncate text-slate-800 dark:text-white">
+                              {p.name}
+                            </span>
+                            <div className="flex items-center text-[11px] text-slate-400 space-x-2.5">
+                              <span className="font-bold text-slate-650 dark:text-slate-350 font-mono">
+                                ₹{p.totalIncome.toLocaleString('en-IN')}
+                              </span>
+                              <span>•</span>
+                              <span className="flex items-center gap-0.5">
+                                <Icon name="calendar" className="w-3 h-3" /> {p.createdAt}
+                              </span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={(e) => deletePlan(p.id, e)}
+                            className="p-2 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg text-slate-400 hover:text-rose-600 transition"
+                            title="Delete saved plan"
+                          >
+                            <Icon name="trash" className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      // =========================================================================
+      // DYNAMIC MAIN SALARY PLANNER CORE ENGINE React.FC
+      // =========================================================================
+      const SalaryDashboard = () => {
+        const [income, setIncome] = useState(15000);
+        const [categories, setCategories] = useState(INITIAL_CATEGORIES);
+        const [selectedId, setSelectedId] = useState(null);
+        const [isDialogOpen, setIsDialogOpen] = useState(false);
+        const [theme, setTheme] = useState(() => {
+          const storedTheme = localStorage.getItem('salary_planner_theme');
+          if (storedTheme === 'light' || storedTheme === 'dark') {
+            return storedTheme;
+          }
+          return 'light';
+        });
+        const [shareSuccess, setShareSuccess] = useState(false);
+
+        const activeCardRef = useRef(null);
+
+        // Synchronize on startup
+        useEffect(() => {
+          const lastSession = localStorage.getItem('salary_planner_session');
+          if (lastSession) {
+            try {
+              const parsed = JSON.parse(lastSession);
+              if (parsed.income) setIncome(parsed.income);
+              if (parsed.categories) {
+                const synced = INITIAL_CATEGORIES.map((init) => {
+                  const saved = parsed.categories.find((sc) => sc.id === init.id);
+                  return saved ? { ...init, percentage: saved.percentage } : init;
+                });
+                setCategories(synced);
+              }
+            } catch (e) {
+              console.error('Error loading last session', e);
+            }
+          }
+
+          // Parse dynamic share URL parameter
+          const params = new URLSearchParams(window.location.search);
+          const sharedData = params.get('p');
+          if (sharedData) {
+            try {
+              const decoded = JSON.parse(atob(sharedData));
+              if (decoded.inc) setIncome(Number(decoded.inc));
+              if (decoded.pcts) {
+                const pairs = decoded.pcts.split(',').reduce((acc, curr) => {
+                  const [id, pct] = curr.split(':');
+                  acc[id] = Number(pct);
+                  return acc;
+                }, {});
+
+                setCategories((prev) =>
+                  prev.map((c) => ({
+                    ...c,
+                    percentage: pairs[c.id] !== undefined ? pairs[c.id] : c.percentage,
+                  }))
+                );
+              }
+            } catch (e) {
+              console.error('Failed to parse shared program data', e);
+            }
+          }
+        }, []);
+
+        // Real-time tracking output to persistent layer
+        useEffect(() => {
+          localStorage.setItem(
+            'salary_planner_session',
+            JSON.stringify({
+              income,
+              categories: categories.map((c) => ({ id: c.id, percentage: c.percentage })),
+            })
+          );
+        }, [income, categories]);
+
+        // Live System Theme Class handler
+        useEffect(() => {
+          const root = document.documentElement;
+          if (theme === 'dark') {
+            root.classList.add('dark');
+          } else {
+            root.classList.remove('dark');
+          }
+          localStorage.setItem('salary_planner_theme', theme);
+        }, [theme]);
+
+        // Key finance allocations and calculations
+        const totalAllocatedPercentage = categories.reduce((sum, c) => sum + c.percentage, 0);
+        const totalAllocatedValue = categories.reduce((sum, c) => sum + (income * c.percentage) / 100, 0);
+        const remainingValue = income - totalAllocatedValue;
+        const isBalanced = totalAllocatedPercentage === 100;
+        const isOverAllocated = totalAllocatedPercentage > 100;
+        const isUnderAllocated = totalAllocatedPercentage < 100;
+
+        const updateCategoryPercentage = (id, value) => {
+          const safeValue = Math.max(0, Math.min(100, isNaN(value) ? 0 : value));
+          setCategories((prev) =>
+            prev.map((c) => (c.id === id ? { ...c, percentage: safeValue } : c))
+          );
+        };
+
+        const autoBalanceBudget = () => {
+          if (categories.length === 0) return;
+
+          if (totalAllocatedPercentage === 0) {
+            setCategories(
+              INITIAL_CATEGORIES.map((init) => ({ ...init, percentage: init.defaultPercentage }))
+            );
+            return;
+          }
+
+          const scaleFactor = 100 / totalAllocatedPercentage;
+          const balanced = categories.map((c) => {
+            const rounded = Math.round(c.percentage * scaleFactor * 10) / 10;
+            return { ...c, percentage: rounded };
+          });
+
+          const currentSum = balanced.reduce((sum, c) => sum + c.percentage, 0);
+          const diff = 100 - currentSum;
+          if (diff !== 0 && balanced.length > 0) {
+            balanced[0].percentage = Math.max(0, Math.round((balanced[0].percentage + diff) * 10) / 10);
+          }
+
+          setCategories(balanced);
+        };
+
+        const resetToDefaults = () => {
+          setIncome(15000);
+          setCategories(INITIAL_CATEGORIES);
+          setSelectedId(null);
+        };
+
+        const handleLoadPlan = (loadedIncome, categoriesMap) => {
+          setIncome(loadedIncome);
+          setCategories((prev) =>
+            prev.map((init) => {
+              const matching = categoriesMap.find((m) => m.id === init.id);
+              return matching ? { ...init, percentage: matching.percentage } : init;
+            })
+          );
+        };
+
+        const handlePrint = () => {
+          window.print();
+        };
+
+        const copyShareLink = () => {
+          try {
+            const stateObject = {
+              inc: income,
+              pcts: categories.map((c) => `${c.id}:${c.percentage}`).join(','),
+            };
+
+            const serialized = btoa(JSON.stringify(stateObject));
+            const url = new URL(window.location.href);
+            url.searchParams.set('p', serialized);
+
+            const allocationsReport = categories
+              .map(
+                (c) =>
+                  `${c.icon} ${c.name.split(' (')[0]}: ₹${((income * c.percentage) / 100).toFixed(0)} (${
+                    c.percentage
+                  }%)`
+              )
+              .join('\n');
+
+            const fullShareText = `*Smart Salary Planner Pro Report*\n----------------------------------------\nTagline: Apne paise ko samajhdaari se manage karo aur apne future ko secure banao!\n\n*Total Income:* ₹${income.toLocaleString(
+              'en-IN'
+            )}\n*Total Budget Allocations:* \n${allocationsReport}\n\nPlan and manage your own salary here: ${url.href}`;
+
+            navigator.clipboard.writeText(fullShareText);
+            setShareSuccess(true);
+            setTimeout(() => setShareSuccess(false), 3000);
+          } catch (err) {
+            alert('Share text copied to Clipboard successfully!');
+          }
+        };
+
+        const getDynamicInsights = () => {
+          const list = [];
+          const essentialsPct = categories.find((c) => c.id === 'essentials')?.percentage || 0;
+          const savingsPct = categories.find((c) => c.id === 'savings')?.percentage || 0;
+          const investPct = categories.find((c) => c.id === 'investments')?.percentage || 0;
+          const skillsPct = categories.find((c) => c.id === 'skills')?.percentage || 0;
+
+          if (essentialsPct > 60) {
+            list.push({
+              title: 'Zaroori kharche thode jyada hai!',
+              text: 'Aapka primary kharcha basic living (Essentials) me 60% se adhik hai. Try karein ise 50% ya usse kam par laane ka, taaki bachat aur future secure ho sake.',
+              type: 'warning',
+            });
+          }
+
+          if (savingsPct + investPct < 20) {
+            list.push({
+              title: 'Bachat aur Investments badhaiye',
+              text: 'Financial security ke liye har mahine minimum 20% savings + investment karna recommended hai. Thoda enjoyment ya extra kharch kam kar ke isko badha sakte hain.',
+              type: 'warning',
+            });
+          } else if (savingsPct + investPct >= 25) {
+            list.push({
+              title: 'Behtareen Bachant aur Planning!',
+              text: 'Waah! Aapne apni income ka 25% se zyada hissa saving & investments me rakha hai. Ye habit aapko gajab ka long-term interest capital de sakti hai!',
+              type: 'success',
+            });
+          }
+
+          if (skillsPct < 15) {
+            list.push({
+              title: 'Knowledge/Skills par thoda dhyaan dein',
+              text: 'Apne upar invest karna sabse bada return (ROI) deta hai. Apne Skill Development/Growth me lagbhag 15% jarur safe rakhein.',
+              type: 'info',
+            });
+          }
+
+          if (list.length === 0) {
+            list.push({
+              title: 'Discipline and Track Daily',
+              text: 'Aapka budget kaafi clear aur balanced lag rha hai. Ise dhang se maintain karein aur monthly limits track karein.',
+              type: 'success',
+            });
+          }
+
+          return list;
+        };
+
+        const dynamicInsights = getDynamicInsights();
+        const quickIncomeOptions = [5000, 10000, 25000, 50000, 100000];
+
+        return (
+          <div className="min-h-screen">
+            {/* Header toolbar */}
+            <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-900 px-4 py-3.5 no-print">
+              <div className="max-w-6xl mx-auto flex items-center justify-between">
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 flex items-center justify-center text-white font-extrabold shadow-md shadow-indigo-500/10">
+                    ₹
+                  </div>
+                  <div>
+                    <h1 className="text-lg font-extrabold sm:text-xl tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                      Salary Planner Pro
+                    </h1>
+                    <p className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-400 font-bold tracking-wide">
+                      Smart Personal Finance Companion
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setIsDialogOpen(true)}
+                    className="px-3 py-1.5 border border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-850 text-xs sm:text-sm font-bold rounded-xl flex items-center gap-1.5 transition text-slate-700 dark:text-slate-300 shadow-2xs"
+                  >
+                    <Icon name="bookmark" className="w-4 h-4 text-indigo-500" />
+                    <span className="hidden sm:inline">Saved Plans</span>
+                  </button>
+
+                  <button
+                    onClick={handlePrint}
+                    className="group p-2 border border-slate-200 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-805 hover:text-indigo-600 dark:hover:text-indigo-400 bg-white dark:bg-slate-900/40 hover:bg-indigo-50/20 dark:hover:bg-indigo-950/15 rounded-xl transition-all duration-200"
+                    title="Print / Generate PDF"
+                  >
+                    <Icon name="printer" className="w-4 h-4 text-slate-650 dark:text-slate-305 group-hover:text-indigo-600" />
+                  </button>
+
+                  <button
+                    onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                    className="p-2 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-705 rounded-xl transition text-yellow-500 dark:text-blue-400"
+                    title="Toggle Dark Theme"
+                  >
+                    {theme === 'light' ? <Icon name="moon" className="w-4 h-4" /> : <Icon name="sun" className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            </header>
+
+            {/* Dashboard Workspace */}
+            <main className="max-w-6xl mx-auto px-4 mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start no-print">
+              <div className="lg:col-span-7 space-y-6">
+                <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-900 rounded-2xl shadow-sm space-y-5 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 dark:bg-indigo-500/10 rounded-full filter blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
+
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-805 pb-4">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                        <Icon name="trending-up" className="w-4 h-4 text-indigo-650" /> Dynamic Income Planner
+                      </h3>
+                      <h4 className="text-xs text-slate-400 dark:text-slate-400 mt-1">
+                        Apni Monthly Salary darj karein aur niche segment plan karein
+                      </h4>
+                    </div>
+
+                    <div
+                      className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 self-start sm:self-auto ${
+                        isBalanced
+                          ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                          : isOverAllocated
+                          ? 'bg-rose-500/10 text-rose-600 border-rose-500/20 animate-pulse'
+                          : 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                      }`}
+                    >
+                      {isBalanced ? (
+                        <>
+                          <Icon name="check-circle" className="w-3.5 h-3.5" /> Balanced 100%
+                        </>
+                      ) : isOverAllocated ? (
+                        <>
+                          <Icon name="alert-triangle" className="w-3.5 h-3.5" /> Overplanned ({totalAllocatedPercentage - 100}%)
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="info" className="w-3.5 h-3.5" /> Left: {100 - totalAllocatedPercentage}%
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Currency Input Field */}
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-1.5 flex items-center pointer-events-none">
+                        <span className="text-2xl font-black text-slate-400 dark:text-slate-500">₹</span>
+                      </div>
+                      <input
+                        type="text"
+                        value={income === 0 ? '' : income}
+                        onChange={(e) => {
+                          const clean = e.target.value.replace(/[^0-9]/g, '');
+                          setIncome(Number(clean));
+                        }}
+                        className="pl-9 pr-6 py-4 w-full bg-slate-50 dark:bg-slate-950 font-sans font-bold text-3xl text-slate-900 dark:text-white rounded-2xl border border-slate-200 dark:border-slate-805 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition duration-150"
+                        placeholder="Enter Income amount"
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 items-center">
+                      <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase mr-1">Quick Select:</span>
+                      {quickIncomeOptions.map((qty) => (
+                        <button
+                          key={qty}
+                          onClick={() => setIncome(qty)}
+                          className={`px-3 py-1.5 text-xs font-bold rounded-lg font-mono transition duration-150 ${
+                            income === qty
+                              ? 'bg-indigo-600 text-white shadow-xs'
+                              : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-202 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-350'
+                          }`}
+                        >
+                          ₹{qty.toLocaleString('en-IN')}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="space-y-1 pt-1">
+                      <div className="flex justify-between text-xs text-slate-400 font-bold font-mono">
+                        <span>₹1,000</span>
+                        <span>Interactive Slider</span>
+                        <span>₹2,50,000</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="1000"
+                        max="250000"
+                        step="1000"
+                        value={income}
+                        onChange={(e) => setIncome(Number(e.target.value))}
+                        className="w-full h-2 bg-slate-150 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-600 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-900 rounded-2xl shadow-sm grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                  <div className="md:col-span-6 flex flex-col items-center">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400 mb-2 self-start flex items-center gap-1">
+                      <Icon name="cpu" className="w-3.5 h-3.5 text-orange-500 animate-spin" /> Interactive Segments
+                    </h4>
+                    <DonutChart
+                      categories={categories}
+                      totalIncome={income}
+                      selectedId={selectedId}
+                      onSliceClick={(id) => {
+                        setSelectedId(id === selectedId ? null : id);
+                        setTimeout(() => {
+                          activeCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 100);
+                      }}
+                    />
+                  </div>
+
+                  <div className="md:col-span-6 space-y-4">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">
+                      Live Overview Summary
+                    </h4>
+
+                    <div className="space-y-2.5">
+                      <div className="p-3 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-805 rounded-xl flex items-center justify-between">
+                        <div>
+                          <span className="text-[11px] block text-slate-400 font-bold">TOTAL INCOME</span>
+                          <span className="text-lg font-extrabold text-slate-800 dark:text-white font-sans">
+                            ₹{income.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[11px] block text-slate-400 font-bold">ALLOCATED BUDGET</span>
+                          <span
+                            className={`text-lg font-extrabold font-sans ${
+                              isBalanced
+                                ? 'text-emerald-500'
+                                : isOverAllocated
+                                ? 'text-rose-500'
+                                : 'text-amber-500'
+                            }`}
+                          >
+                            ₹{totalAllocatedValue.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl flex items-center justify-between">
+                        <div>
+                          <span className="text-[11px] block text-slate-400 font-bold">REMAINING UNPLANNED</span>
+                          <span
+                            className={`text-sm font-bold font-sans ${
+                              remainingValue > 0
+                                ? 'text-amber-500'
+                                : remainingValue === 0
+                                ? 'text-slate-400'
+                                : 'text-rose-500'
+                            }`}
+                          >
+                            {remainingValue >= 0
+                              ? `₹${remainingValue.toLocaleString('en-IN')}`
+                              : `Overspent: ₹${Math.abs(remainingValue).toLocaleString('en-IN')}`}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[11px] block text-slate-400 font-bold">TOTAL PERCENT PIE</span>
+                          <span
+                            className={`text-sm font-black font-mono ${
+                              isBalanced
+                                ? 'text-emerald-500'
+                                : isOverAllocated
+                                ? 'text-rose-500'
+                                : 'text-amber-500'
+                            }`}
+                          >
+                            {totalAllocatedPercentage}% / 100%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 pt-1">
+                      <div className="h-3.5 bg-slate-100 dark:bg-slate-950 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800 flex">
+                        {categories.map((c) => {
+                          if (c.percentage <= 0) return null;
+                          return (
+                            <div
+                              key={c.id}
+                              style={{ width: `${(c.percentage / Math.max(100, totalAllocatedPercentage)) * 100}%`, backgroundColor: c.color }}
+                              className="h-full transition-all duration-300 first:rounded-l-full last:rounded-r-full"
+                              title={`${c.name}: ${c.percentage}%`}
+                            />
+                          );
+                        })}
+                      </div>
+                      <div className="flex justify-between text-[11px] font-bold text-slate-400">
+                        <span>Allocated Progress</span>
+                        <span>{totalAllocatedPercentage}% Sum</span>
+                      </div>
+                    </div>
+
+                    {(isOverAllocated || isUnderAllocated) && (
+                      <button
+                        onClick={autoBalanceBudget}
+                        className="w-full py-2.5 px-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-650 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-5xs"
+                      >
+                        <Icon name="sparkles" className="w-4 h-4 text-white" />
+                        {isOverAllocated
+                          ? 'Proportionately scale down to exactly 100%!'
+                          : 'Fill remaining unplanned budget (Auto-Balance!)'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <button
+                    onClick={resetToDefaults}
+                    className="px-4 py-3 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 text-slate-650 dark:text-slate-350 shadow-3xs"
+                  >
+                    <Icon name="rotate-ccw" className="w-4 h-4" /> Reset Plan
+                  </button>
+
+                  <button
+                    onClick={() => setIsDialogOpen(true)}
+                    className="px-4 py-3 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 text-slate-650 dark:text-slate-350 shadow-3xs"
+                  >
+                    <Icon name="folder-open" className="w-4 h-4 text-indigo-500" /> Presets / Load
+                  </button>
+
+                  <button
+                    onClick={() => setIsDialogOpen(true)}
+                    className="px-4 py-3 bg-indigo-600 hover:bg-indigo-750 text-white rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10"
+                  >
+                    <Icon name="bookmark" className="w-4 h-4" /> Save Plan
+                  </button>
+
+                  <button
+                    onClick={copyShareLink}
+                    className={`px-4 py-3 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                      shareSuccess
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                    }`}
+                  >
+                    <Icon name={shareSuccess ? 'check' : 'share-2'} className="w-4 h-4" />
+                    {shareSuccess ? 'Report Copied!' : 'Share / Copy Report'}
+                  </button>
+                </div>
+
+                <div className="p-5 bg-indigo-500/5 dark:bg-slate-900 border border-indigo-500/10 dark:border-slate-800/80 rounded-2xl space-y-4">
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-indigo-400 flex items-center gap-1.5">
+                    <Icon name="sparkles" className="w-4 h-4" /> Smart Insights & Tips (Samajhdaari ki Baatein)
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    {dynamicInsights.map((tip, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3.5 bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-805 rounded-xl space-y-1.5 hover:border-slate-300 dark:hover:border-slate-750 transition flex flex-col justify-between"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-2">
+                            {tip.type === 'warning' ? (
+                              <Icon name="alert-triangle" className="w-3.5 h-3.5 text-rose-500 flex-shrink-0" />
+                            ) : tip.type === 'success' ? (
+                              <Icon name="check-circle" className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                            ) : (
+                              <Icon name="info" className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
+                            )}
+                            <span className="font-bold text-xs text-slate-800 dark:text-slate-200">
+                              {tip.title}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
+                            {tip.text}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right column: Categories and Sliders */}
+              <div className="lg:col-span-5 space-y-5">
+                <div className="flex justify-between items-center px-1">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-450">
+                    Budget Categories ({categories.length})
+                  </h3>
+                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                    Adjust sliders to balance
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  {categories.map((category) => {
+                    const allocatedAmount = (income * category.percentage) / 100;
+                    const isSelected = selectedId === category.id;
+
+                    return (
+                      <div
+                        key={category.id}
+                        ref={isSelected ? activeCardRef : null}
+                        onClick={() => setSelectedId(category.id === selectedId ? null : category.id)}
+                        style={{
+                          borderColor: isSelected ? category.color : undefined,
+                        }}
+                        className={`p-5 bg-white dark:bg-slate-900 border rounded-2xl transition-all duration-305 relative group cursor-pointer ${
+                          isSelected
+                            ? 'shadow-lg border-[2px]'
+                            : 'border-slate-200/80 dark:border-slate-900 hover:border-slate-350 dark:hover:border-slate-800'
+                        }`}
+                      >
+                        {isSelected && (
+                          <div
+                            className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full m-3 animate-ping"
+                            style={{ backgroundColor: category.color }}
+                          />
+                        )}
+
+                        <div className="flex items-start space-x-3">
+                          <div
+                            className={`w-11 h-11 text-xl flex items-center justify-center rounded-xl flex-shrink-0 shadow-3xs ${category.bgColor}`}
+                          >
+                            {category.icon}
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-center">
+                              <h4 className="font-bold text-sm tracking-tight text-slate-800 dark:text-white truncate">
+                                {category.name}
+                              </h4>
+                              <span className="text-xs text-slate-400 font-mono flex-shrink-0">
+                                {category.percentage}% Default: {category.defaultPercentage}%
+                              </span>
+                            </div>
+                            {category.hindiName && (
+                              <p className="text-[10px] sm:text-xs font-bold text-slate-400 dark:text-slate-500 mt-0.5">
+                                {category.hindiName}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className={`mt-3 text-xs leading-relaxed text-slate-500 dark:text-slate-400 transition-all ${
+                          isSelected ? 'max-h-52 opacity-100 block' : 'max-h-12 opacity-80 overflow-hidden line-clamp-1'
+                        }`}>
+                          {category.description}
+                        </div>
+
+                        <div className="mt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-800/80 pt-3">
+                          <span className="text-xs font-bold text-slate-400 dark:text-slate-450 uppercase">
+                            Allocated Cash
+                          </span>
+                          <span className="font-black text-slate-950 dark:text-white text-base font-sans">
+                            ₹{allocatedAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                          </span>
+                        </div>
+
+                        <div className="mt-3.5 space-y-2.5" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center space-x-3">
+                            <div className="relative flex-1 flex items-center h-6 select-none group/slider">
+                              <div className="absolute inset-x-0 h-2.5 bg-slate-100 dark:bg-slate-800/80 rounded-full overflow-hidden pointer-events-none">
+                                <div
+                                  style={{
+                                    width: `${category.percentage}%`,
+                                    backgroundColor: category.color,
+                                  }}
+                                  className="h-full rounded-full transition-all duration-75"
+                                />
+                              </div>
+                              <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                step="1"
+                                value={category.percentage}
+                                onChange={(e) => updateCategoryPercentage(category.id, Number(e.target.value))}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                              />
+                              <div
+                                style={{
+                                  left: `calc(${category.percentage}% - 10px)`,
+                                  backgroundColor: category.color,
+                                  boxShadow: '0 2px 5px rgba(0,0,0,0.25)',
+                                }}
+                                className="absolute w-5 h-5 rounded-full border-[3px] border-white dark:border-slate-950 pointer-events-none transition-all duration-75 group-hover/slider:scale-110"
+                              />
+                            </div>
+
+                            <div className="relative w-16">
+                              <input
+                                type="text"
+                                value={category.percentage}
+                                onChange={(e) => {
+                                  const clean = e.target.value.replace(/[^0-9]/g, '');
+                                  updateCategoryPercentage(category.id, Number(clean));
+                                }}
+                                className="w-full text-center px-1.5 py-1 text-xs font-bold font-mono border border-slate-205 dark:border-slate-800 rounded-md bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                              />
+                              <Icon name="percent" className="w-3 h-3 absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center text-[10px]">
+                            <div className="flex space-x-1">
+                              <button
+                                onClick={() => updateCategoryPercentage(category.id, category.percentage - 5)}
+                                className="px-2 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-800 rounded-md font-extrabold text-slate-700 dark:text-slate-400 border border-slate-200"
+                              >
+                                - 5%
+                              </button>
+                              <button
+                                onClick={() => updateCategoryPercentage(category.id, category.percentage + 5)}
+                                className="px-2 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-800 rounded-md font-extrabold text-slate-700 dark:text-slate-400 border border-slate-200"
+                              >
+                                + 5%
+                              </button>
+                            </div>
+
+                            <button
+                              onClick={() => updateCategoryPercentage(category.id, category.defaultPercentage)}
+                              className="text-xs text-indigo-505 hover:text-indigo-650 font-bold flex items-center gap-0.5"
+                            >
+                              Reset to {category.defaultPercentage}%
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </main>
+
+            <SaveLoadDialog
+              isOpen={isDialogOpen}
+              onClose={() => setIsDialogOpen(false)}
+              categories={categories}
+              totalIncome={income}
+              onLoadPlan={handleLoadPlan}
+            />
+
+            {/* Print Friendly Export Invoice Style */}
+            <div className="hidden print:block p-8 space-y-6 max-w-4xl mx-auto text-black">
+              <center className="space-y-2">
+                <h1 className="text-3xl font-extrabold">Smart Salary Planner Pro Report</h1>
+                <p className="text-sm italic text-gray-500">
+                  Apne paise ko samajhdaari se manage karo aur apne future ko secure banao!
+                </p>
+                <div className="text-xs text-gray-400">
+                  Exported on: {new Date().toLocaleString('en-IN')}
+                </div>
+              </center>
+
+              <div className="border border-gray-300 rounded-xl p-5 grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-xs text-gray-400 uppercase font-bold block">TOTAL MONTHLY INCOME</span>
+                  <span className="text-2xl font-bold font-mono">₹{income.toLocaleString('en-IN')}</span>
+                </div>
+                <div>
+                  <span className="text-xs text-gray-400 uppercase font-bold block">TOTAL ALLOCATED BUDGET</span>
+                  <span className="text-2xl font-bold font-mono">₹{totalAllocatedValue.toLocaleString('en-IN')}</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h2 className="text-xl font-bold border-b border-gray-300 pb-1">Planned Categories</h2>
+                {categories.map((c) => (
+                  <div key={c.id} className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <div className="space-y-0.5">
+                      <span className="font-bold text-sm">
+                        {c.icon} {c.name.split(' (')[0]}
+                      </span>
+                      <p className="text-[11px] text-gray-400 italic font-medium">{c.description}</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-bold font-mono text-sm block">
+                        ₹{((income * c.percentage) / 100).toLocaleString('en-IN')}
+                      </span>
+                      <span className="text-xs text-gray-400 font-mono">{c.percentage}% Allocation</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {dynamicInsights.length > 0 && (
+                <div className="space-y-2 pt-4">
+                  <h2 className="text-xl font-bold border-b border-gray-300 pb-1">Recommendations & Smart Insights</h2>
+                  <ul className="list-disc pl-5 space-y-1.5 text-xs">
+                    {dynamicInsights.map((tip, index) => (
+                      <li key={index}>
+                        <strong>{tip.title}</strong> — {tip.text}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      // Render App inside Root element
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<SalaryDashboard />);
+    </script>
+  </body>
+</html>
